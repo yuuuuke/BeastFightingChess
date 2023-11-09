@@ -1,5 +1,6 @@
 package com.zhpew.beastfightingchess
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,10 @@ import com.zhpew.beastfightingchess.model.CellBean
 object GameController {
 
     val state = mutableStateOf(UiState(initCell()))
+
+    fun refresh() {
+        state.value = UiState(initCell())
+    }
 
     lateinit var onFinish: (isRedWin: Boolean) -> Unit
 
@@ -52,15 +57,15 @@ object GameController {
     fun onItemClick(index: Int) {
         val i = index / 4
         val j = index % 4
-
-        val lastI = state.value.selectedIndex / 4
-        val lastJ = state.value.selectedIndex % 4
-
         val item = state.value.Pieces[i][j]
-        val lastItem = state.value.Pieces[lastI][lastJ]
 
         if (state.value.selectedIndex != -1) {
             // 已经有选中的item了，判断是翻牌，还是往哪边走，还是无效操作
+
+            val lastI = state.value.selectedIndex / 4
+            val lastJ = state.value.selectedIndex % 4
+            val lastItem = state.value.Pieces[lastI][lastJ]
+
             if (state.value.selectedIndex == index) {
                 if (item.isCover) {
                     // 翻
@@ -81,17 +86,21 @@ object GameController {
                     if (item.isCover) {
                         //不能走,切换选中
                         state.value = state.value.copy(selectedIndex = index)
+                        return
                     }
                     if (item.isBlock) {
                         // 空位，可走,交换位置
                         state.value.Pieces[i][j] = lastItem
                         state.value.Pieces[lastI][lastJ] = item
+                        checkFinish()
+                        return
                     }
                     if (item.isRed == lastItem.isRed) {
                         // 同一边的棋子，不可走，切换选中
                         state.value = state.value.copy(selectedIndex = index)
                     } else {
-                        if (lastItem.level >= item.level) {
+                        if ((!(lastItem.level == 8 && item.level == 1) && lastItem.level >= item.level)
+                            ||lastItem.level == 1 && item.level == 8) {
                             // 可以吃掉。先交换位置，再将last置为block
                             state.value.Pieces[i][j] = lastItem
                             state.value.Pieces[lastI][lastJ] = item.apply {
@@ -104,16 +113,23 @@ object GameController {
                         }
                     }
                 } else {
-                    if (state.value.isRedTurn == lastItem.isRed) {
-                        //切换选中
-                        state.value = state.value.copy(selectedIndex = index)
+                    if (!item.isBlock) {
+                        if (state.value.isRedTurn == lastItem.isRed) {
+                            //切换选中
+                            state.value = state.value.copy(selectedIndex = index)
+                        }
                     }
                 }
             }
         } else {
             if (!item.isBlock) {
-                if (state.value.Pieces[i][j].isRed == state.value.isRedTurn) {
-                    state.value = state.value.copy(selectedIndex = index)
+                if (item.isCover) {
+                    item.isCover = false
+                    checkFinish()
+                } else {
+                    if (state.value.Pieces[i][j].isRed == state.value.isRedTurn) {
+                        state.value = state.value.copy(selectedIndex = index)
+                    }
                 }
             }
         }
@@ -129,14 +145,17 @@ object GameController {
         for (cellList in pieces) {
             for (cell in cellList) {
                 if (cell.isRed) {
-                    redLive = !cell.isBlock
+                    if (!redLive)
+                        redLive = !cell.isBlock
                 } else {
-                    blueLive = !cell.isBlock
+                    if (!blueLive)
+                        blueLive = !cell.isBlock
                 }
             }
             if (redLive && blueLive) {
                 // 双方此刻都还存活
-                state.value = state.value.copy(isRedTurn = !state.value.isRedTurn)
+                state.value =
+                    state.value.copy(selectedIndex = -1, isRedTurn = !state.value.isRedTurn)
                 return
             }
         }
@@ -149,5 +168,5 @@ object GameController {
 data class UiState(
     val Pieces: SnapshotStateList<SnapshotStateList<CellBean>> = mutableStateListOf(),
     val selectedIndex: Int = -1,
-    val isRedTurn: Boolean = false
+    val isRedTurn: Boolean = false,
 )
