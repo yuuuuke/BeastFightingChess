@@ -1,7 +1,6 @@
 package com.zhpew.beastfightingchess
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -21,14 +20,14 @@ object GameController {
 
     lateinit var onFinish: (isRedWin: Boolean) -> Unit
 
-    fun initCell(): SnapshotStateList<SnapshotStateList<CellBean>> {
+    private fun initCell(): SnapshotStateList<SnapshotStateList<CellBean>> {
         val array = IntArray(16) {
             return@IntArray it
         }
         // 乱序
-        for (index in 0 until 15) {
+        for (index in 15 downTo  1) {
             // 向上取整
-            val random = (Math.random() * (15 - index)).toInt() + 1
+            val random = (Math.random() * index).toInt()
             val temp = array[index]
             array[index] = array[random]
             array[random] = temp
@@ -100,7 +99,8 @@ object GameController {
                         state.value = state.value.copy(selectedIndex = index)
                     } else {
                         if ((!(lastItem.level == 8 && item.level == 1) && lastItem.level >= item.level)
-                            ||lastItem.level == 1 && item.level == 8) {
+                            || lastItem.level == 1 && item.level == 8
+                        ) {
                             // 可以吃掉。先交换位置，再将last置为block
                             state.value.Pieces[i][j] = lastItem
                             state.value.Pieces[lastI][lastJ] = item.apply {

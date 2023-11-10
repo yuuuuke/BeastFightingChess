@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -30,6 +29,7 @@ import com.zhpew.beastfightingchess.GameController
 import com.zhpew.beastfightingchess.R
 import com.zhpew.beastfightingchess.model.CellBean
 import com.zhpew.beastfightingchess.px
+import kotlin.math.log
 
 @Composable
 fun CellView(cellBean: CellBean, index: Int) {
@@ -72,17 +72,22 @@ fun CellView(cellBean: CellBean, index: Int) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (cellBean.isBlock) {
-            Box(modifier = Modifier
-                .width(55.dp)
-                .height(55.dp))
-        }else{
+            Box(
+                modifier = Modifier
+                    .width(55.dp)
+                    .height(55.dp)
+            )
+        } else {
             if (cellBean.isCover) {
                 Column(
                     modifier = modifier,
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(painter = painterResource(id = R.drawable.unknow), contentDescription = "")
+                    Image(
+                        painter = painterResource(id = R.drawable.unknow),
+                        contentDescription = ""
+                    )
                 }
             } else {
                 val rotate = remember {
@@ -92,11 +97,16 @@ fun CellView(cellBean: CellBean, index: Int) {
                     targetValue = if (rotate.value) 135 else 0,
                     animationSpec = TweenSpec(durationMillis = 100, easing = LinearEasing),
                     finishedListener = {
-                        rotate.value = !rotate.value
+                        Log.v("zwp","///")
+                        if (isSelected) {
+                            rotate.value = !rotate.value
+                        }
                     })
-                Box(modifier = Modifier
-                    .height(55.dp)
-                    .width(55.dp)) {
+                Box(
+                    modifier = Modifier
+                        .height(55.dp)
+                        .width(55.dp)
+                ) {
                     Column(
                         modifier = modifier,
                         verticalArrangement = Arrangement.Center,
@@ -111,8 +121,8 @@ fun CellView(cellBean: CellBean, index: Int) {
                     }
                     if (isSelected) {
 
-                        LaunchedEffect(isSelected){
-                            rotate.value = true
+                        LaunchedEffect(null) {
+                            rotate.value = !rotate.value
                         }
 
                         val paint = remember {
