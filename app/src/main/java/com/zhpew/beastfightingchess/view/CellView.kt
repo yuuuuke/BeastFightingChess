@@ -97,7 +97,6 @@ fun CellView(cellBean: CellBean, index: Int) {
                     targetValue = if (rotate.value) 135 else 0,
                     animationSpec = TweenSpec(durationMillis = 100, easing = LinearEasing),
                     finishedListener = {
-                        Log.v("zwp","///")
                         if (isSelected) {
                             rotate.value = !rotate.value
                         }

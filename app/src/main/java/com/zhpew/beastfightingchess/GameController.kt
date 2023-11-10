@@ -66,14 +66,8 @@ object GameController {
             val lastItem = state.value.Pieces[lastI][lastJ]
 
             if (state.value.selectedIndex == index) {
-                if (item.isCover) {
-                    // 翻
-                    item.isCover = false
-                    checkFinish()
-                } else {
-                    //取消选中态
-                    state.value = state.value.copy(selectedIndex = -1)
-                }
+                //取消选中态
+                state.value = state.value.copy(selectedIndex = -1)
             } else {
                 // 是否是上下左右
                 if ((i == lastI + 1 && j == lastJ)
@@ -83,8 +77,10 @@ object GameController {
                 ) {
                     // 有效操作,判断能不能走
                     if (item.isCover) {
-                        //不能走,切换选中
-                        state.value = state.value.copy(selectedIndex = index)
+                        // 点了其它覆盖的棋子，直接翻开，切换回合
+                        item.isCover = false
+                        state.value = state.value.copy(selectedIndex = -1)
+                        checkFinish()
                         return
                     }
                     if (item.isBlock) {
@@ -153,7 +149,7 @@ object GameController {
                 }
             }
             if (redLive && blueLive) {
-                // 双方此刻都还存活
+                // 双方此刻都还存活,切换到对方回合
                 state.value =
                     state.value.copy(selectedIndex = -1, isRedTurn = !state.value.isRedTurn)
                 return
